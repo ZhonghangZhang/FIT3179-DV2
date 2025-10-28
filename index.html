@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Load Vega, Vega-Lite, and Vega-Embed libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/vega@6.2.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@6.1.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@7.0.2"></script>
+</head>
+<body>
+  <!-- Title -->
+  <h2 style="text-align:center; margin-bottom:10px;">
+    Top Source Country of International Students in Australia (Jan–Jul 2025)
+  </h2>
+
+  <!-- Text box -->
+  <div style="
+    background-color: #e6f3ff;    
+    border: 2px solid #b5d8ff;    /* 边框颜色略深 */
+    border-radius: 10px;           /* 圆角边框 */
+    padding: 12px 18px;            /* 内边距 */
+    max-width: 850px;              /* 控制宽度 */
+    margin: 0 auto 16px;           /* 居中 + 下方留白 */
+    font-size: 16px;
+    color: #333;
+    line-height: 1.6;
+    text-align: center;">
+    This dashboard provides an overview of international student distribution across Australian states and territories in 2025. It highlights key regional differences and identifies the top source countries contributing to Australia’s international education sector.
+  </div>
+  <div id="vis"></div>
+  <div class="vis-footer">
+    <b>Data Source:</b>
+    <a href="https://www.education.gov.au/international-education-data-and-research/international-student-numbers-country-state-and-territory" target="_blank" rel="noopener">
+        Australian Government Department of Education
+    </a>
+    &nbsp;|&nbsp;
+    <b>Dataset:</b> International Student Data (Jan–Jul 2025)
+    &nbsp;|&nbsp;
+    <b>Author:</b> Zhonghang Zhang
+  </div>
+  <style>
+    /* Basic page styling */
+    html, body { margin: 0; }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;  
+      background: #fff;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    #vis { width: 100%; max-width: 1000px; margin: 24px 12px; }
+    .vega-embed { width: 100%; }
+    .vis-footer{
+      width: 100%;
+      max-width: 1000px;   
+      margin: 0 12px 24px; 
+      padding: 12px 14px;
+      text-align: center;
+      background: #1f2a37;  
+      color: #e8edf2;         
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .vis-footer a{
+      color: #7ec8ff;         
+      text-decoration: none;
+    }
+    .vis-footer a:hover{ text-decoration: underline; }  
+  </style>
+  <script>
+    /* Define Vega-Lite specification */
+    const spec = {
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  /* Dropdown menu for selecting country filter */
+  "params": [
+    {
+      "name": "country_sel",
+      "value": "Top 3 Source Countries Total",
+      "bind": {
+        "input": "select",
+        "options": ["Top 3 Source Countries Total", "China", "India", "Nepal", "Vietnam","Brazil","Bhutan","Bangladesh"],
+        "name": "Filter country: "
+      }
+    }
+  ],
+  /* Combine map and bar chart vertically */
+  "vconcat": [
+    /* ----------- MAP SECTION ----------- */
+    {
+      "width": 980,
+      "height": 520,
+      "projection": {
+        "type": "albers",          /* Use Albers projection for Australia */
+        "parallels": [-18, -36],
+        "rotate": [-136, 0, 0],
+        "center": [0, -25]
+      },
+      "title": {
+        "text": "Top Source Country of International Students by State, Australia (Jan–Jul 2025)",
+        "subtitle": "Size = # of students; Color = top source country",
+        "anchor": "start",
+        "fontSize": 17
+      },
+      /* Layer multiple visual elements on the map */
+      "layer": [
+        {
+           /* Base map layer (Australia states) */
+          "data": {
+            "url": "https://raw.githubusercontent.com/rowanhogan/australian-states/master/states.geojson"
+          },
+          "mark": {
+            "type": "geoshape",
+            "fill": "#f4ecec",
+            "stroke": "#9aa4ad",
+            "strokeWidth": 0.7
+          }
+        },
+        {
+          /* Circle markers representing each state’s top country and count */	
+          "data": {
+            "values": [
+              {
+                "state": "NSW",
+                "lon": 151.2093,
+                "lat": -33.8688,
+                "country": "China",
+                "count": 82425
+              },
+              {
+                "state": "VIC",
+                "lon": 144.9631,
+                "lat": -37.8136,
+                "country": "India",
+                "count": 57794
+              },
+              {
+                "state": "QLD",
+                "lon": 153.0251,
+                "lat": -27.4698,
+                "country": "China",
+                "count": 20224
+              },
+              {
+                "state": "SA",
+                "lon": 138.6007,
+                "lat": -34.9285,
+                "country": "India",
+                "count": 12093
+              },
+              {
+                "state": "WA",
+                "lon": 115.8575,
+                "lat": -31.9505,
+                "country": "India",
+                "count": 11577
+              },
+              {
+                "state": "TAS",
+                "lon": 147.3272,
+                "lat": -42.8821,
+                "country": "Nepal",
+                "count": 1227
+              },
+              {
+                "state": "NT",
+                "lon": 130.8456,
+                "lat": -12.4634,
+                "country": "Nepal",
+                "count": 1257
+              },
+              {
+                "state": "ACT",
+                "lon": 149.13,
+                "lat": -35.2809,
+                "country": "China",
+                "count": 7497
+              }
+            ]
+          },
+          "mark": {
+            "type": "circle",
+            "opacity": 0.9,
+            "stroke": "#333",
+            "strokeWidth": 0.3
+          },
+          "encoding": {
+            "longitude": {"field": "lon", "type": "quantitative"},
+            "latitude": {"field": "lat", "type": "quantitative"},
+            "size": {
+              "field": "count",
+              "type": "quantitative",
+              "scale": {"range": [60, 1800]},
+              "legend": {"title": "# Students"}
+            },
+            "color": {
+              "field": "country",
+              "type": "nominal",
+              "legend": {"title": "Top source country"},
+              "scale": {
+                "domain": ["China", "India", "Nepal"],
+                "range": ["#1f77b4", "#ff7f0e", "#2ca02c"]
+              }
+            },
+            "tooltip": [
+              {"field": "state", "title": "State/Territory"},
+              {"field": "country", "title": "Top country"},
+              {"field": "count", "title": "Students", "format": ","}
+            ]
+          }
+        },
+        {
+
+          /* Add text labels showing country name and number */
+          "data": {
+            "values": [
+              {
+                "state": "NSW",
+                "lon": 151.2093,
+                "lat": -33.8688,
+                "country": "China",
+                "count": 82425
+              },
+              {
+                "state": "VIC",
+                "lon": 144.9631,
+                "lat": -37.8136,
+                "country": "India",
+                "count": 57794
+              },
+              {
+                "state": "QLD",
+                "lon": 153.0251,
+                "lat": -27.4698,
+                "country": "China",
+                "count": 20224
+              },
+              {
+                "state": "SA",
+                "lon": 138.6007,
+                "lat": -34.9285,
+                "country": "India",
+                "count": 12093
+              },
+              {
+                "state": "WA",
+                "lon": 115.8575,
+                "lat": -31.9505,
+                "country": "India",
+                "count": 11577
+              },
+              {
+                "state": "TAS",
+                "lon": 147.3272,
+                "lat": -42.8821,
+                "country": "Nepal",
+                "count": 1227
+              },
+              {
+                "state": "NT",
+                "lon": 130.8456,
+                "lat": -12.4634,
+                "country": "Nepal",
+                "count": 1257
+              },
+              {
+                "state": "ACT",
+                "lon": 149.13,
+                "lat": -35.2809,
+                "country": "China",
+                "count": 7497
+              }
+            ]
+          },
+          "transform": [
+            {
+              "calculate": "datum.country + ' — ' + format(datum.count, ',')",
+              "as": "label"
+            }
+          ],
+          "mark": {
+            "type": "text",
+            "dy": -12,
+            "fontSize": 14,
+            "fontWeight": "bold",
+            "fill": "#1f2a37"
+          },
+          "encoding": {
+            "longitude": {"field": "lon", "type": "quantitative"},
+            "latitude": {"field": "lat", "type": "quantitative"},
+            "text": {"field": "label"}
+          }
+        }
+      ],
+      "config": {"view": {"stroke": null}}
+    },
+
+    /* ----------- BAR CHART SECTION ----------- */
+    {
+      "width": 960,
+      "height": 520,
+      "title": {
+        /* Dynamic title depending on dropdown selection */
+        "text": {
+          "expr": "country_sel === 'Top 3 Source Countries Total' ? 'International Students by State (Top 3 Source Countries Total, Jan–Jul 2025)' : 'International Students by State – ' + country_sel + ' (Jan–Jul 2025)'"
+        },
+        "anchor": "start",
+        "fontSize": 18,
+        "fontWeight": "bold",
+        "offset": 6
+      },
+
+      /* Data for each state and country */
+      "data": {
+        "values": [
+          {"state": "NSW", "country": "China", "count": 82425},
+          {"state": "NSW", "country": "Nepal", "count": 40347},
+          {"state": "NSW", "country": "India", "count": 33705},
+          {"state": "VIC", "country": "India", "count": 57794},
+          {"state": "VIC", "country": "China", "count": 55056},
+          {"state": "VIC", "country": "Vietnam", "count": 14670},
+          {"state": "QLD", "country": "China", "count": 20224},
+          {"state": "QLD", "country": "India", "count": 17670},
+          {"state": "QLD", "country": "Brazil", "count": 6854},
+          {"state": "SA", "country": "India", "count": 12093},
+          {"state": "SA", "country": "China", "count": 8280},
+          {"state": "SA", "country": "Nepal", "count": 3068},
+          {"state": "WA", "country": "India", "count": 11577},
+          {"state": "WA", "country": "Bhutan", "count": 9305},
+          {"state": "WA", "country": "China", "count": 7143},
+          {"state": "TAS", "country": "Nepal", "count": 1227},
+          {"state": "TAS", "country": "India", "count": 1064},
+          {"state": "TAS", "country": "China", "count": 743},
+          {"state": "NT", "country": "Nepal", "count": 1257},
+          {"state": "NT", "country": "India", "count": 1074},
+          {"state": "NT", "country": "Bangladesh", "count": 569},
+          {"state": "ACT", "country": "China", "count": 7497},
+          {"state": "ACT", "country": "India", "count": 3071},
+          {"state": "ACT", "country": "Nepal", "count": 1767}
+        ]
+      },
+
+      /* X and Y encoding setup */
+      "encoding": {
+        "x": {
+          "type": "nominal",
+          "sort": ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"],
+          "title": "State/Territory"
+        },
+        "y": {
+          "type": "quantitative",
+          "title": "Students (Jan–Jul 2025)",
+          "axis": {"format": ","},
+          "scale": {"zero": true, "nice": false, "domainMin": 0}
+        }
+      },
+
+      /* Multiple visual layers */
+      "layer": [
+        /* Add baseline rule at y = 0 */
+        {
+          "data": {"values": [{}]},
+
+          /* Main bar chart – filtered by dropdown */
+          "transform": [{"calculate": "0", "as": "y0"}],
+          "mark": {"type": "rule", "stroke": "#111827", "strokeWidth": 1},
+          "encoding": {"y": {"field": "y0", "type": "quantitative"}}
+        },
+        {
+          "transform": [
+            {
+              "filter": "country_sel === 'Top 3 Source Countries Total' || datum.country === country_sel"
+            },
+            {
+              "aggregate": [{"op": "sum", "field": "count", "as": "total"}],
+              "groupby": ["state"]
+            }
+          ],
+          "mark": {"type": "bar", "cornerRadiusEnd": 3},
+          "encoding": {
+            "x": {"field": "state"},
+            "y": {"field": "total"},
+            "y2": {"value": 0},
+            "tooltip": [
+              {"field": "state", "title": "State/Territory"},
+              {"field": "total", "title": "Students", "format": ","}
+            ]
+          }
+        },
+
+        /* Dashed line showing max value across states */
+        {
+          "transform": [
+            {
+              "filter": "country_sel === 'Top 3 Source Countries Total' || datum.country === country_sel"
+            },
+            {
+              "aggregate": [{"op": "sum", "field": "count", "as": "total"}],
+              "groupby": ["state"]
+            },
+            {"aggregate": [{"op": "max", "field": "total", "as": "maxY"}]}
+          ],
+          "mark": {"type": "rule", "strokeDash": [6, 4], "color": "#374151"},
+          "encoding": {"y": {"field": "maxY"}}
+        },
+
+        /* Text labels showing numeric values above bars */
+        {
+          "transform": [
+            {
+              "filter": "country_sel === 'Top 3 Source Countries Total' || datum.country === country_sel"
+            },
+            {
+              "aggregate": [{"op": "sum", "field": "count", "as": "total"}],
+              "groupby": ["state"]
+            }
+          ],
+          "mark": {
+            "type": "text",
+            "dy": -6,
+            "fontWeight": "bold",
+            "color": "#111827"
+          },
+          "encoding": {
+            "x": {"field": "state"},
+            "y": {"field": "total"},
+            "text": {"field": "total", "format": ","}
+          }
+        }
+      ],
+      "resolve": {"scale": {"y": "shared"}},
+      "config": {
+        "view": {"stroke": null},
+        "axis": {"labelFontSize": 12, "titleFontSize": 12, "domain": false}
+      }
+    }
+  ],
+
+  /* Space between map and bar chart */
+  "spacing": 28,
+  "config": {}
+};
+    /* Render Vega-Lite visualization */
+    vegaEmbed("#vis", spec, {mode: "vega-lite"}).then(console.log).catch(console.warn);
+  </script>
+</body>
+</html>
